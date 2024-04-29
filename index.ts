@@ -14,11 +14,12 @@ import log from './utils/log';
 import { validate } from './utils/validator';
 import typescriptGenerator from './generator/typescript/write';
 import javaGenerator from './generator/java/write';
+import goGenerator from './generator/go/write';
 import { Schema } from './interface/schema';
 
 const input = cli.input;
 const flags = cli.flags;
-const { clear, debug, file, output, typescriptOut, javaOut } = flags as { [key: string]: string | boolean; };
+const { clear, debug, file, output, typescriptOut, javaOut, goOut } = flags as { [key: string]: string | boolean; };
 
 function validateAndGenerateOutput(jsonSchema: Schema) {
   const { error, logMessage } = validate(flags, jsonSchema);
@@ -27,13 +28,13 @@ function validateAndGenerateOutput(jsonSchema: Schema) {
     return;
   }
 
-  const dtoInformation = jsonSchema["dto"];
+  const typeInformation = jsonSchema["types"];
   const compilerOptions = jsonSchema["compilerOptions"];
   switch (output) {
     case "typescript":
       typescriptGenerator(
         typescriptOut as string,
-        dtoInformation
+        typeInformation
       );
       break;
 
@@ -41,7 +42,15 @@ function validateAndGenerateOutput(jsonSchema: Schema) {
       javaGenerator(
         javaOut as string,
         compilerOptions.java.package,
-        dtoInformation
+        typeInformation
+      );
+      break;
+
+    case "go":
+      goGenerator(
+        goOut as string,
+        compilerOptions.go.package,
+        typeInformation
       );
       break;
 
