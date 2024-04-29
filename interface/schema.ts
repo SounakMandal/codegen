@@ -1,5 +1,5 @@
-interface FieldDefinition {
-  [key: string]: string;
+export interface FieldDefinition {
+  [key: string]: string | FieldDefinition;
 }
 
 export interface TypeDefinition {
@@ -7,6 +7,7 @@ export interface TypeDefinition {
   fields: FieldDefinition;
 }
 
+export type SupportedLanguages = 'java' | 'go' | 'typescript';
 export interface CompilerOptions {
   [key: string]: any;
 }
