@@ -1,5 +1,5 @@
 import { TypeDefinition } from '../../interface/schema';
-import { convertToTitleCase, createDirectory, writeFileWithLog } from '../create';
+import { convertToTitleCase, createDirectory, fileNameGenerator, writeFileWithLog } from '../create';
 import { javaParser } from './generator';
 
 export default function generateType(outputDirectoryPath: string, javaPackage: string, data: TypeDefinition[]) {
@@ -8,9 +8,9 @@ export default function generateType(outputDirectoryPath: string, javaPackage: s
   createDirectory(slashDelimitedDirectoryPath);
 
   for (let index = 0; index < data.length; index++) {
-    const dto = data[index];
-    const file = `${ slashDelimitedDirectoryPath }/${ convertToTitleCase(dto["type"]) }.java`;
-    const generatedType = javaParser(javaPackage, dto);
+    const typeInformation = data[index];
+    const file = fileNameGenerator(slashDelimitedDirectoryPath, convertToTitleCase(typeInformation["type"]), "java");
+    const generatedType = javaParser(javaPackage, typeInformation);
     writeFileWithLog(file, generatedType);
   }
 }

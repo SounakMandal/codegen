@@ -36,13 +36,18 @@ export const flags = {
 	},
 	typescript_out: {
 		type: `string`,
-		alias: `m`,
+		alias: `t`,
 		desc: `The typescript module where the code should be generated`
 	},
 	java_out: {
 		type: `string`,
 		alias: `j`,
 		desc: `The java package where the code should be generated`
+	},
+	go_out: {
+		type: `string`,
+		alias: `g`,
+		desc: `The golang package where the code should be generated`
 	}
 };
 

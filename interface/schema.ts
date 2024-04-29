@@ -12,6 +12,6 @@ export interface CompilerOptions {
 }
 
 export interface Schema {
-  dto: TypeDefinition[];
+  types: TypeDefinition[];
   compilerOptions: CompilerOptions;
 }

@@ -2,9 +2,12 @@
 	"compilerOptions": {
 		"java": {
 			"package": "com.dto"
+		},
+		"go": {
+			"package": "models"
 		}
 	},
-	"dto": [
+	"types": [
 		{
 			"type": "user_details",
 			"fields": {
