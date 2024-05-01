@@ -11,7 +11,7 @@ node_modules/
 *.gz
 *.bz2
 *.iso
-# *.jar
+*.jar
 *.rar
 *.tar
 *.zip

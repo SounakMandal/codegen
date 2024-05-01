@@ -2,17 +2,14 @@ import { TemplateOptions } from '../../interface/mapper';
 import { TypeDefinition } from '../../interface/schema';
 import { createDirectory } from '../../utils/file/file';
 import { getEntityName } from '../../utils/types/extractor';
-import {
-  convertToTitleCase,
-  fileNameGenerator,
-  writeEntityToFile,
-} from '../generate';
+import { convertToTitleCase, fileNameGenerator } from '../../utils/file/naming';
 import {
   convertToJavaEntityField,
   javaTemplateBuilder,
   javaDatatypeMapper,
   javaFormatter,
 } from './mapper';
+import { writeEntityToFile } from '../generate';
 
 export default function generateType(
   outputDirectoryPath: string,
@@ -21,7 +18,7 @@ export default function generateType(
 ) {
   const { package: javaPackage } = options;
   const directories = javaPackage.split('.');
-  const slashDelimitedDirectoryPath = `${ outputDirectoryPath }/${ directories.join('/') }`;
+  const slashDelimitedDirectoryPath = `${outputDirectoryPath}/${directories.join('/')}`;
   createDirectory(slashDelimitedDirectoryPath);
 
   for (let index = 0; index < entities.length; index++) {

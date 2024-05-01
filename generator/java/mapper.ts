@@ -1,8 +1,11 @@
 import { exec } from 'child_process';
-import { listDataTypeInSchema } from '../../utils/types/constants';
-import { convertToCamelCase, convertToTitleCase } from '../generate';
+import {
+  convertToCamelCase,
+  convertToTitleCase,
+} from '../../utils/file/naming';
 import { TemplateOptions } from '../../interface/mapper';
 import { getBaseTypeOfList } from '../../utils/types/extractor';
+import { isArrayType } from '../../utils/types/matcher';
 
 export function javaDatatypeMapper(schemaDatatype: string): string {
   switch (schemaDatatype) {
@@ -15,13 +18,17 @@ export function javaDatatypeMapper(schemaDatatype: string): string {
       return schemaDatatype;
 
     default:
-      const arrayTypeMatch = listDataTypeInSchema.test(schemaDatatype);
-      if (!arrayTypeMatch) return convertToTitleCase(schemaDatatype);
-      return `List<${ javaDatatypeMapper(getBaseTypeOfList(schemaDatatype)) }>`;
+      if (isArrayType(schemaDatatype))
+        return `List<${ javaDatatypeMapper(getBaseTypeOfList(schemaDatatype)) }>`;
+      return convertToTitleCase(schemaDatatype);
   }
 }
 
-export function convertToJavaEntityField(fieldType: string, fieldName: string) {
+export function convertToJavaEntityField(
+  fieldType: string,
+  fieldName: string | null,
+) {
+  if (fieldName === null) return `${ fieldType.toUpperCase() },\n`;
   return `private ${ fieldType } ${ convertToCamelCase(fieldName) };\n`;
 }
 
@@ -30,7 +37,7 @@ export function javaTemplateBuilder(
   fieldInformation: string,
   options: TemplateOptions,
 ) {
-  const { packageName, includePackage, typeGraph } = options;
+  const { packageName, includePackage, typeGraph, enumType } = options;
   let dependentImports: string = '';
   if (typeGraph) {
     const dependencyList = typeGraph[entityName];
@@ -45,9 +52,8 @@ export function javaTemplateBuilder(
   ${ dependentImports }
   `;
 
-  let fileContents: string = `
-  @Data
-  ${ includePackage ? 'public' : 'private' } class ${ convertToTitleCase(entityName) } {
+  let fileContents: string = `@Data
+  ${ includePackage ? 'public' : 'private' } ${ enumType ? 'enum' : 'class' } ${ convertToTitleCase(entityName) } {
     ${ fieldInformation }
   }`;
 

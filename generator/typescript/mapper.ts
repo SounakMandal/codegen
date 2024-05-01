@@ -1,8 +1,11 @@
-import prettier from "@prettier/sync";
-import { listDataTypeInSchema } from '../../utils/types/constants';
-import { convertToCamelCase, convertToTitleCase } from '../generate';
+import prettier from '@prettier/sync';
+import {
+  convertToCamelCase,
+  convertToTitleCase,
+} from '../../utils/file/naming';
 import { getBaseTypeOfList } from '../../utils/types/extractor';
 import { TemplateOptions } from '../../interface/mapper';
+import { isArrayType } from '../../utils/types/matcher';
 
 export function typescriptDatatypeMapper(schemaDatatype: string): string {
   switch (schemaDatatype) {
@@ -15,16 +18,17 @@ export function typescriptDatatypeMapper(schemaDatatype: string): string {
       return 'number';
 
     default:
-      const arrayTypeMatch = listDataTypeInSchema.test(schemaDatatype);
-      if (!arrayTypeMatch) return convertToTitleCase(schemaDatatype);
-      return `${ typescriptDatatypeMapper(getBaseTypeOfList(schemaDatatype)) }[]`;
+      if (isArrayType(schemaDatatype))
+        return `${ typescriptDatatypeMapper(getBaseTypeOfList(schemaDatatype)) }[]`;
+      return convertToTitleCase(schemaDatatype);
   }
 }
 
 export function convertToTypescriptEntityField(
   fieldType: string,
-  fieldName: string,
+  fieldName: string | null,
 ) {
+  if (fieldName === null) return `| "${ fieldType }"`;
   return `${ convertToCamelCase(fieldName) }: ${ fieldType };\n`;
 }
 
@@ -33,7 +37,7 @@ export function typescriptTemplateBuilder(
   fieldInformation: string,
   options: TemplateOptions,
 ) {
-  const { includePackage, typeGraph } = options;
+  const { includePackage, typeGraph, enumType } = options;
   let dependentImports: string = '';
   if (typeGraph) {
     const dependencyList = typeGraph[entityName];
@@ -44,13 +48,14 @@ export function typescriptTemplateBuilder(
     }
   }
 
-  const fileContents = `
-  ${ dependentImports }
+  const fileContents = enumType
+    ? `${ dependentImports }
 
-  ${ includePackage ? 'export' : '' } interface ${ convertToTitleCase(entityName) } {
-    ${ fieldInformation }
-  }`;
-  return prettier.format(fileContents, { parser: "typescript" });
+    ${ includePackage ? 'export' : '' } type ${ convertToTitleCase(entityName) } = ${ fieldInformation }`
+    : `${ dependentImports }
+
+    ${ includePackage ? 'export' : '' } interface ${ convertToTitleCase(entityName) } {${ fieldInformation }}`;
+  return prettier.format(fileContents, { parser: 'typescript' });
 }
 
 export function typescriptFormatter(file: string) { }
