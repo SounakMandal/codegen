@@ -1,43 +1,25 @@
-import { characterAfterHyphenOrUnderscore } from '../utils/types/constants';
-import { FieldDefinition, TypeDefinition } from '../interface/schema';
-import { appendFileWithLog, writeFileWithLog } from '../utils/file/file';
 import {
   TypeMapper,
   FieldConverter,
   TemplateBuilder,
-  TemplateOptions,
   FileFormatter,
-} from './../interface/mapper';
+  TemplateOptions,
+} from '../interface/mapper';
+import { FieldDefinition, TypeDefinition } from '../interface/schema';
+import { appendFileWithLog, writeFileWithLog } from '../utils/file/file';
 import { getEntityFields, getEntityName } from '../utils/types/extractor';
-
-export function convertToCamelCase(str: string) {
-  return str.replace(characterAfterHyphenOrUnderscore, (_, char) =>
-    char.toUpperCase(),
-  );
-}
-
-export function convertToTitleCase(str: string) {
-  const camelCasedString = convertToCamelCase(str);
-  return camelCasedString.charAt(0).toUpperCase() + camelCasedString.slice(1);
-}
-
-export function fileNameGenerator(
-  outputDirectoryPath: string,
-  fileName: string,
-  fileType: string,
-) {
-  return `${ outputDirectoryPath }/${ fileName }.${ fileType }`;
-}
+import { isObjectType, isEnumType } from '../utils/types/matcher';
+import { convertToTitleCase } from '../utils/file/naming';
 
 function generateEntityFieldFromType(
   fieldName: string,
-  rawFieldType: FieldDefinition[string],
+  rawFieldType: string | FieldDefinition,
   typeMapper: TypeMapper,
   fieldConverter: FieldConverter,
 ) {
   let fieldType: string;
   let anonymousEntity: TypeDefinition | null = null;
-  if (typeof rawFieldType === 'object') {
+  if (isObjectType(rawFieldType)) {
     fieldType = convertToTitleCase(fieldName);
     anonymousEntity = {
       type: fieldType,
@@ -50,29 +32,51 @@ function generateEntityFieldFromType(
   };
 }
 
-function generateEntityFromType(
+function generateEntityFieldFromEnumType(
+  rawFieldType: string,
+  typeMapper: TypeMapper,
+  fieldConverter: FieldConverter,
+) {
+  const fieldType = typeMapper(rawFieldType);
+  return fieldConverter(fieldType, null);
+}
+
+export function generateEntityFromType(
   entity: TypeDefinition,
   typeMapper: TypeMapper,
   fieldConverter: FieldConverter,
 ) {
   let fieldInformation = '';
+  let enumType: boolean = false;
   let anonymousEntities: TypeDefinition[] = [];
   const entityFields = getEntityFields(entity);
-  for (const fieldName in entityFields) {
-    const { entityField, anonymousEntity } = generateEntityFieldFromType(
-      fieldName,
-      entityFields[fieldName],
-      typeMapper,
-      fieldConverter,
-    );
-    fieldInformation += entityField;
-    if (anonymousEntity != null)
-      anonymousEntities = [...anonymousEntities, anonymousEntity];
+  if (isEnumType(entityFields)) {
+    enumType = true;
+    for (let index = 0; index < entityFields.length; index++) {
+      const entityField = generateEntityFieldFromEnumType(
+        entityFields[index],
+        typeMapper,
+        fieldConverter,
+      );
+      fieldInformation += entityField;
+    }
+  } else {
+    for (const fieldName in entityFields) {
+      const { entityField, anonymousEntity } = generateEntityFieldFromType(
+        fieldName,
+        entityFields[fieldName],
+        typeMapper,
+        fieldConverter,
+      );
+      fieldInformation += entityField;
+      if (anonymousEntity != null)
+        anonymousEntities = [...anonymousEntities, anonymousEntity];
+    }
   }
-  return { fieldInformation, anonymousEntities };
+  return { fieldInformation, anonymousEntities, enumType };
 }
 
-function processAnonymousEntities(
+export function processAnonymousEntities(
   file: string,
   anonymousEntities: TypeDefinition[],
   typeMapper: TypeMapper,
@@ -82,10 +86,14 @@ function processAnonymousEntities(
   for (let index = 0; index < anonymousEntities.length; index++) {
     const anonymousEntity = anonymousEntities[index];
     const entityName = getEntityName(anonymousEntity);
-    const { fieldInformation, anonymousEntities: nestedAnonymousEntities } =
-      generateEntityFromType(anonymousEntity, typeMapper, fieldConverter);
+    const {
+      fieldInformation,
+      anonymousEntities: nestedAnonymousEntities,
+      enumType,
+    } = generateEntityFromType(anonymousEntity, typeMapper, fieldConverter);
     const entityDefinition = templateBuilder(entityName, fieldInformation, {
       includePackage: false,
+      enumType,
     });
     const syncCondition =
       nestedAnonymousEntities.length > 0 && index !== anonymousEntities.length;
@@ -111,15 +119,13 @@ export function writeEntityToFile(
 ) {
   const { packageName, typeGraph } = options;
   const entityName = getEntityName(entity);
-  const { fieldInformation, anonymousEntities } = generateEntityFromType(
-    entity,
-    typeMapper,
-    fieldConverter,
-  );
+  const { fieldInformation, anonymousEntities, enumType } =
+    generateEntityFromType(entity, typeMapper, fieldConverter);
   const entityDefinition = templateBuilder(entityName, fieldInformation, {
     packageName,
     includePackage: true,
     typeGraph,
+    enumType,
   });
   writeFileWithLog(file, entityDefinition, anonymousEntities.length > 0);
   processAnonymousEntities(

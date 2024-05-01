@@ -1,6 +1,6 @@
-export interface FieldDefinition {
-  [key: string]: string | FieldDefinition;
-}
+export type FieldDefinition =
+  | { [key: string]: string | FieldDefinition }
+  | string[];
 
 export interface TypeDefinition {
   type: string;

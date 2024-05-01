@@ -3,6 +3,7 @@
 Generate DTO for REST APIs for typesafe communication between backend and frontend.
 
 - Supported primitive types: _int_, _float_, _double_, _string_
+- Enum types are supported via string arrays
 - Anonymous types are supported where we can define the fields of an entity as an json object
 - Arrays of primitive types are supported with the keyword _list_
 

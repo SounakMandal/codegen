@@ -4,12 +4,17 @@ import {
   SupportedLanguages,
   TypeDefinition,
 } from '../../interface/schema';
-import { listDataTypeInSchema } from '../types/constants';
 import {
   getBaseTypeOfList,
   getCompilerOptionsFromSchema,
   getEntitiesFromSchema,
 } from '../types/extractor';
+import {
+  isArrayType,
+  isEnumType,
+  isObjectType,
+  isPrimitiveType,
+} from '../types/matcher';
 
 function validateCommand(flags: TypedFlags<any>) {
   let error = false;
@@ -70,16 +75,16 @@ function extractCustomTypesFromSchema(entities: TypeDefinition[]) {
 
 function validateType(customTypes: string[], typeValue: string | object) {
   // Check if anonymous type
-  if (typeof typeValue === 'object' && typeValue !== null) return true;
+  if (isObjectType(typeValue)) return true;
 
   // Check if type is user defined in schema
   if (customTypes.includes(typeValue)) return true;
 
   // Check if primitive type
-  if (['string', 'int', 'float', 'double'].includes(typeValue)) return true;
+  if (isPrimitiveType(typeValue)) return true;
 
   // At this point only list type is supported
-  if (!listDataTypeInSchema.test(typeValue)) return false;
+  if (!isArrayType(typeValue)) return false;
   return validateType(customTypes, getBaseTypeOfList(typeValue));
 }
 
@@ -106,6 +111,7 @@ function validateSchema(output: SupportedLanguages, schema: Schema) {
   const customTypes = extractCustomTypesFromSchema(entities);
   for (let index = 0; index < entities.length; index++) {
     const fields = entities[index]['fields'];
+    if (isEnumType(fields)) continue;
     for (const fieldName in fields) {
       const typeValue = fields[fieldName];
       const typeValid = validateType(customTypes, typeValue);

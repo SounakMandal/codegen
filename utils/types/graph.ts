@@ -1,33 +1,30 @@
 import { FieldDefinition, Schema } from '../../interface/schema';
-import { listDataTypeInSchema } from './constants';
 import {
   getBaseTypeOfList,
   getEntitiesFromSchema,
   getEntityDetails,
 } from './extractor';
-
-function isPrimitiveType(fieldType: string) {
-  switch (fieldType) {
-    case 'int':
-    case 'float':
-    case 'double':
-    case 'string':
-      return true;
-
-    default:
-      return false;
-  }
-}
+import {
+  isArrayType,
+  isEnumType,
+  isObjectType,
+  isPrimitiveType,
+} from './matcher';
 
 function getTypeGraphOfEntity(entityFields: FieldDefinition) {
   let dependencyList: string[] = [];
 
+  if (isEnumType(entityFields)) return dependencyList;
   for (const fieldName in entityFields) {
     const fieldType = entityFields[fieldName];
-    if (typeof fieldType === 'object' && fieldType !== null) {
+    if (isObjectType(fieldType)) {
       continue;
     } else if (!isPrimitiveType(fieldType)) {
-      if (!listDataTypeInSchema.test(fieldType)) continue;
+      if (!isArrayType(fieldType)) {
+        dependencyList = [...dependencyList, fieldType];
+        continue;
+      }
+
       dependencyList = [...dependencyList, 'list'];
       const baseType = getBaseTypeOfList(fieldType);
       if (!isPrimitiveType(baseType))

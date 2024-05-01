@@ -6,6 +6,11 @@ export function getBaseTypeOfList(listType: string) {
   return listType.split(' ')[1];
 }
 
+export function getEnumValues(enumType: string) {
+  const enumValues = enumType.split('|');
+  return enumValues.map((value) => value.trim());
+}
+
 export function getCompilerOptionsFromSchema(schema: Schema) {
   return schema['compilerOptions'];
 }
