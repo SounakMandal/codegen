@@ -1,7 +1,7 @@
 {
 	"name": "codegen",
 	"description": "A CLI tool for generating REST DTOs",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"license": "MIT License",
 	"bin": {
 		"codegen": "index.js"
@@ -23,6 +23,7 @@
 		"format": "prettier --write \"./**/*.{js,ts,json}\""
 	},
 	"dependencies": {
+		"@prettier/sync": "^0.5.2",
 		"chalk": "^4.1.2",
 		"cli-alerts": "^1.2.2",
 		"cli-handle-error": "^4.4.0",

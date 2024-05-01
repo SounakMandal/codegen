@@ -1,14 +1,34 @@
+import { TemplateOptions } from '../../interface/mapper';
 import { TypeDefinition } from '../../interface/schema';
-import { createDirectory, fileNameGenerator, writeFileWithLog } from '../create';
-import { typescriptParser } from './generator';
+import { createDirectory } from '../../utils/file/file';
+import { getEntityName } from '../../utils/types/extractor';
+import { fileNameGenerator, writeEntityToFile } from '../generate';
+import {
+  convertToTypescriptEntityField,
+  typescriptTemplateBuilder,
+  typescriptDatatypeMapper,
+  typescriptFormatter,
+} from './mapper';
 
-export default function generateType(outputDirectoryPath: string, data: TypeDefinition[]) {
+export default function generateType(
+  outputDirectoryPath: string,
+  entities: TypeDefinition[],
+  options: TemplateOptions,
+) {
   createDirectory(outputDirectoryPath);
 
-  for (let index = 0; index < data.length; index++) {
-    const typeInformation = data[index];
-    const file = fileNameGenerator(outputDirectoryPath, typeInformation["type"].toLowerCase(), "ts");
-    const generatedType = typescriptParser(typeInformation);
-    writeFileWithLog(file, generatedType);
+  for (let index = 0; index < entities.length; index++) {
+    const entity = entities[index];
+    const fileName = getEntityName(entity).toLowerCase();
+    const file = fileNameGenerator(outputDirectoryPath, fileName, 'ts');
+    writeEntityToFile(
+      file,
+      entity,
+      typescriptDatatypeMapper,
+      convertToTypescriptEntityField,
+      typescriptTemplateBuilder,
+      typescriptFormatter,
+      options,
+    );
   }
 }

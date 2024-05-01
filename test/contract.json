@@ -1,0 +1,38 @@
+{
+	"compilerOptions": {
+		"java": {
+			"package": "com.dto"
+		},
+		"go": {
+			"package": "models"
+		}
+	},
+	"types": [
+		{
+			"type": "user_details",
+			"fields": {
+				"name": "string",
+				"timestamp": "int",
+				"accounts": "list[account_details]",
+				"address": {
+					"pin_code": "int",
+					"street": "string",
+					"state": "string",
+					"country": "string",
+					"contact_information": {
+						"phone_number": "string",
+						"email": "string"
+					}
+				}
+			}
+		},
+		{
+			"type": "account_details",
+			"fields": {
+				"account_number": "int",
+				"phone_number": "list[string]",
+				"nominee": "list[string]"
+			}
+		}
+	]
+}
