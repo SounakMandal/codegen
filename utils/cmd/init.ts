@@ -1,5 +1,5 @@
 import welcome from 'cli-welcome';
-import { description, version } from '../package.json';
+import { description, version } from '../../package.json';
 import unhandled from 'cli-handle-unhandled';
 
 export default ({ clear = true }) => {

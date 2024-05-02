@@ -4,8 +4,12 @@ import {
   convertToTitleCase,
 } from '../../utils/file/naming';
 import { TemplateOptions } from '../../interface/mapper';
-import { getBaseTypeOfList } from '../../utils/types/extractor';
-import { isArrayType } from '../../utils/types/matcher';
+import {
+  getBaseTypeOfList,
+  getKeyTypeOfMap,
+  getValueTypeOfMap,
+} from '../../utils/types/extractor';
+import { isArrayType, isMapType } from '../../utils/types/matcher';
 
 export function javaDatatypeMapper(schemaDatatype: string): string {
   switch (schemaDatatype) {
@@ -20,6 +24,8 @@ export function javaDatatypeMapper(schemaDatatype: string): string {
     default:
       if (isArrayType(schemaDatatype))
         return `List<${ javaDatatypeMapper(getBaseTypeOfList(schemaDatatype)) }>`;
+      if (isMapType(schemaDatatype))
+        return `Map<${ javaDatatypeMapper(getKeyTypeOfMap(schemaDatatype)) }, ${ javaDatatypeMapper(getValueTypeOfMap(schemaDatatype)) }>`;
       return convertToTitleCase(schemaDatatype);
   }
 }
@@ -45,6 +51,8 @@ export function javaTemplateBuilder(
       const dependency = dependencyList[index];
       if (dependency === 'list')
         dependentImports = `${ dependentImports } import java.util.List;`;
+      if (dependency === 'map')
+        dependentImports = `${ dependentImports } import java.util.Map;`;
     }
   }
   const imports = `
