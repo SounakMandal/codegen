@@ -3,9 +3,13 @@ import {
   convertToCamelCase,
   convertToTitleCase,
 } from '../../utils/file/naming';
-import { getBaseTypeOfList } from '../../utils/types/extractor';
+import {
+  getBaseTypeOfList,
+  getKeyTypeOfMap,
+  getValueTypeOfMap,
+} from '../../utils/types/extractor';
 import { TemplateOptions } from '../../interface/mapper';
-import { isArrayType } from '../../utils/types/matcher';
+import { isArrayType, isMapType } from '../../utils/types/matcher';
 
 export function typescriptDatatypeMapper(schemaDatatype: string): string {
   switch (schemaDatatype) {
@@ -20,6 +24,8 @@ export function typescriptDatatypeMapper(schemaDatatype: string): string {
     default:
       if (isArrayType(schemaDatatype))
         return `${ typescriptDatatypeMapper(getBaseTypeOfList(schemaDatatype)) }[]`;
+      if (isMapType(schemaDatatype))
+        return `Map<${ typescriptDatatypeMapper(getKeyTypeOfMap(schemaDatatype)) }, ${ typescriptDatatypeMapper(getValueTypeOfMap(schemaDatatype)) }>`;
       return convertToTitleCase(schemaDatatype);
   }
 }
@@ -43,7 +49,7 @@ export function typescriptTemplateBuilder(
     const dependencyList = typeGraph[entityName];
     for (let index = 0; index < dependencyList.length; index++) {
       const dependency = dependencyList[index];
-      if (dependency !== 'list')
+      if (dependency !== 'list' && dependency !== 'map')
         dependentImports = `${ dependentImports } import {${ convertToTitleCase(dependency) }} from './${ dependency }';`;
     }
   }

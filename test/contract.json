@@ -28,17 +28,28 @@
       }
     },
     {
+      "type": "user_role",
+      "fields": ["admin", "employee", "customer"]
+    },
+    {
       "type": "account_details",
       "fields": {
         "account_number": "int",
         "phone_number": "list[string]",
         "nominee": "list[string]",
-        "type": ["savings", "credit"]
+        "type": ["savings", "credit"],
+        "daily_expense": "map[string, float]",
+        "daily_transactions": "map[string, transaction]",
+        "transactions_by_users": "map[user_details, transaction]"
       }
     },
     {
-      "type": "user_role",
-      "fields": ["admin", "employee", "customer"]
+      "type": "transaction",
+      "fields": {
+        "timestamp": "int",
+        "amount": "float",
+        "recepient": "user_details"
+      }
     }
   ]
 }

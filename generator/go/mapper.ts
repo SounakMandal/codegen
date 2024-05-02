@@ -1,8 +1,12 @@
 import { exec } from 'child_process';
 import { TemplateOptions } from '../../interface/mapper';
-import { getBaseTypeOfList } from '../../utils/types/extractor';
+import {
+  getBaseTypeOfList,
+  getKeyTypeOfMap,
+  getValueTypeOfMap,
+} from '../../utils/types/extractor';
 import { convertToTitleCase } from '../../utils/file/naming';
-import { isArrayType } from '../../utils/types/matcher';
+import { isArrayType, isMapType } from '../../utils/types/matcher';
 
 export function golangDatatypeMapper(schemaDatatype: string): string {
   switch (schemaDatatype) {
@@ -15,9 +19,11 @@ export function golangDatatypeMapper(schemaDatatype: string): string {
       return `${ schemaDatatype }64`;
 
     default:
-      if (!isArrayType(schemaDatatype))
-        return convertToTitleCase(schemaDatatype);
-      return `[]${ golangDatatypeMapper(getBaseTypeOfList(schemaDatatype)) }`;
+      if (isArrayType(schemaDatatype))
+        return `[]${ golangDatatypeMapper(getBaseTypeOfList(schemaDatatype)) }`;
+      if (isMapType(schemaDatatype))
+        return `map[${ golangDatatypeMapper(getKeyTypeOfMap(schemaDatatype)) }]${ golangDatatypeMapper(getValueTypeOfMap(schemaDatatype)) }`;
+      return convertToTitleCase(schemaDatatype);
   }
 }
 

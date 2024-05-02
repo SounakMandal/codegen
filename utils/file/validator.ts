@@ -1,4 +1,3 @@
-import { TypedFlags } from 'meow';
 import {
   Schema,
   SupportedLanguages,
@@ -8,62 +7,16 @@ import {
   getBaseTypeOfList,
   getCompilerOptionsFromSchema,
   getEntitiesFromSchema,
-} from '../types/extractor';
+  getKeyTypeOfMap,
+  getValueTypeOfMap,
+} from './../types/extractor';
 import {
   isArrayType,
   isEnumType,
+  isMapType,
   isObjectType,
   isPrimitiveType,
-} from '../types/matcher';
-
-function validateCommand(flags: TypedFlags<any>) {
-  let error = false;
-  let logMessage = '';
-  const { file, output, typescriptOut, javaOut, goOut } = flags as {
-    [key: string]: string | boolean;
-  };
-
-  if (file === undefined) {
-    logMessage += '--file is a mandatory arguement\n';
-    error = true;
-  }
-
-  if (output === undefined) {
-    logMessage += '--output is a mandatory arguement\n';
-    error = true;
-  }
-
-  switch (output) {
-    case 'typescript':
-      if (typescriptOut === undefined) {
-        logMessage +=
-          '--typescript_out is a mandatory arguement when --output is typescript\n';
-        error = true;
-      }
-      break;
-
-    case 'java':
-      if (javaOut === undefined) {
-        logMessage +=
-          '--java_out is a mandatory arguement when --output is java\n';
-        error = true;
-      }
-      break;
-
-    case 'go':
-      if (goOut === undefined) {
-        logMessage += '--go_out is a mandatory arguement when --output is go\n';
-        error = true;
-      }
-      break;
-
-    default:
-      logMessage += 'output language not supported yet';
-      error = true;
-  }
-
-  return { error, logMessage };
-}
+} from './../types/matcher';
 
 function extractCustomTypesFromSchema(entities: TypeDefinition[]) {
   let customTypes: string[] = [];
@@ -73,22 +26,24 @@ function extractCustomTypesFromSchema(entities: TypeDefinition[]) {
   return customTypes;
 }
 
-function validateType(customTypes: string[], typeValue: string | object) {
-  // Check if anonymous type
+function validateType(
+  customTypes: string[],
+  typeValue: string | object,
+): boolean {
   if (isObjectType(typeValue)) return true;
-
-  // Check if type is user defined in schema
   if (customTypes.includes(typeValue)) return true;
-
-  // Check if primitive type
   if (isPrimitiveType(typeValue)) return true;
-
-  // At this point only list type is supported
-  if (!isArrayType(typeValue)) return false;
-  return validateType(customTypes, getBaseTypeOfList(typeValue));
+  if (isArrayType(typeValue))
+    return validateType(customTypes, getBaseTypeOfList(typeValue));
+  if (isMapType(typeValue))
+    return (
+      validateType(customTypes, getKeyTypeOfMap(typeValue)) &&
+      validateType(customTypes, getValueTypeOfMap(typeValue))
+    );
+  return false;
 }
 
-function validateSchema(output: SupportedLanguages, schema: Schema) {
+export function validateSchema(output: SupportedLanguages, schema: Schema) {
   let error = false;
   let logMessage = '';
   const entities = getEntitiesFromSchema(schema);
@@ -122,16 +77,4 @@ function validateSchema(output: SupportedLanguages, schema: Schema) {
     }
   }
   return { error, logMessage };
-}
-
-export function validate(flags: TypedFlags<any>, schema: Schema) {
-  const { error: flagError, logMessage: commandLogs } = validateCommand(flags);
-  const { error: schemaError, logMessage: schemaLogs } = validateSchema(
-    flags.output as SupportedLanguages,
-    schema,
-  );
-  return {
-    error: flagError || schemaError,
-    logMessage: `${ commandLogs }\n${ schemaLogs }`,
-  };
 }

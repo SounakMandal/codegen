@@ -8,10 +8,10 @@
  */
 
 import { readFile } from 'fs';
-import init from './utils/init';
-import cli from './utils/cli';
-import log from './utils/log';
-import { validate } from './utils/file/validator';
+import init from './utils/cmd/init';
+import cli from './utils/cmd/cli';
+import log from './utils/cmd/log';
+import { validate } from './utils/validator';
 import typescriptGenerator from './generator/typescript/write';
 import javaGenerator from './generator/java/write';
 import goGenerator from './generator/go/write';

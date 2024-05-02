@@ -1,16 +1,5 @@
 import { Schema, TypeDefinition } from '../../interface/schema';
 
-export function getBaseTypeOfList(listType: string) {
-  listType = listType.replace('[', ' ');
-  listType = listType.replace(']', ' ');
-  return listType.split(' ')[1];
-}
-
-export function getEnumValues(enumType: string) {
-  const enumValues = enumType.split('|');
-  return enumValues.map((value) => value.trim());
-}
-
 export function getCompilerOptionsFromSchema(schema: Schema) {
   return schema['compilerOptions'];
 }
@@ -32,4 +21,37 @@ export function getEntityDetails(entity: TypeDefinition) {
     entityName: getEntityName(entity),
     entityFields: getEntityFields(entity),
   };
+}
+
+export function getEnumValues(enumType: string) {
+  const enumValues = enumType.split('|');
+  return enumValues.map((value) => value.trim());
+}
+
+export function getBaseTypeOfList(listType: string) {
+  const splitCharacter = ':';
+  listType = listType.replace('[', splitCharacter);
+  listType = listType.replace(']', splitCharacter);
+  return listType.split(splitCharacter)[1].trim();
+}
+
+function getKeyValuePair(mapType: string) {
+  const splitCharacter = ':';
+  mapType = mapType.replace('[', splitCharacter);
+  mapType = mapType.replace(']', splitCharacter);
+  return mapType.split(splitCharacter)[1];
+}
+
+export function getKeyTypeOfMap(mapType: string) {
+  const splitCharacter = ':';
+  let keyValuePair = getKeyValuePair(mapType);
+  keyValuePair = keyValuePair.replace(',', splitCharacter);
+  return keyValuePair.split(splitCharacter)[0].trim();
+}
+
+export function getValueTypeOfMap(mapType: string) {
+  const splitCharacter = ':';
+  let keyValuePair = getKeyValuePair(mapType);
+  keyValuePair = keyValuePair.replace(',', splitCharacter);
+  return keyValuePair.split(splitCharacter)[1].trim();
 }
