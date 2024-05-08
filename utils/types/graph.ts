@@ -17,29 +17,37 @@ import {
 function getTypeGraphOfEntity(entityFields: FieldDefinition) {
   let dependencyList: string[] = [];
 
+  const handleAnonymousType = (fieldType: FieldDefinition) => {
+    const nestedDependecyList = getTypeGraphOfEntity(fieldType);
+    dependencyList = [...dependencyList, ...nestedDependecyList];
+  };
+
+  const handleArrayType = (fieldType: string) => {
+    dependencyList = [...dependencyList, 'list'];
+    const baseType = getBaseTypeOfList(fieldType);
+    if (!isPrimitiveType(baseType))
+      dependencyList = [...dependencyList, baseType];
+  };
+
+  const handleMapType = (fieldType: string) => {
+    dependencyList = [...dependencyList, 'map'];
+    const keyType = getKeyTypeOfMap(fieldType);
+    if (!isPrimitiveType(keyType))
+      dependencyList = [...dependencyList, keyType];
+    const valueType = getValueTypeOfMap(fieldType);
+    if (!isPrimitiveType(valueType))
+      dependencyList = [...dependencyList, valueType];
+  };
+
   if (isEnumType(entityFields)) return dependencyList;
-  for (const fieldName in entityFields) {
-    const fieldType = entityFields[fieldName];
-    if (isObjectType(fieldType) || isPrimitiveType(fieldType)) continue;
-    if (isArrayType(fieldType)) {
-      dependencyList = [...dependencyList, 'list'];
-      const baseType = getBaseTypeOfList(fieldType);
-      if (!isPrimitiveType(baseType))
-        dependencyList = [...dependencyList, baseType];
-      continue;
-    }
-    if (isMapType(fieldType)) {
-      dependencyList = [...dependencyList, 'map'];
-      const keyType = getKeyTypeOfMap(fieldType);
-      if (!isPrimitiveType(keyType))
-        dependencyList = [...dependencyList, keyType];
-      const valueType = getValueTypeOfMap(fieldType);
-      if (!isPrimitiveType(valueType))
-        dependencyList = [...dependencyList, valueType];
-      continue;
-    }
-    dependencyList = [...dependencyList, fieldType];
-  }
+  Object.values(entityFields)
+    .forEach((fieldType, _) => {
+      if (isObjectType(fieldType)) handleAnonymousType(fieldType);
+      else if (isArrayType(fieldType)) handleArrayType(fieldType);
+      else if (isMapType(fieldType)) handleMapType(fieldType);
+      else if (isPrimitiveType(fieldType)) return;
+      else dependencyList = [...dependencyList, fieldType];
+    });
   return [...new Set(dependencyList)];
 }
 
