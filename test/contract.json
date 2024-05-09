@@ -17,6 +17,7 @@
         "address": {
           "pin_code": "int",
           "street": "string",
+          "city": "string",
           "state": "string",
           "country": "string",
           "contact_information": {
@@ -46,9 +47,19 @@
     {
       "type": "transaction",
       "fields": {
+        "id": "string",
         "timestamp": "int",
         "amount": "float",
-        "recepient": "user_details"
+        "recepient": {
+          "name": "string",
+          "account_number": "int"
+        },
+        "item": {
+          "id": "string",
+          "cost": "int",
+          "units": "int",
+          "categories": "list[string]"
+        }
       }
     }
   ]
