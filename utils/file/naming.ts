@@ -1,4 +1,4 @@
-import { characterAfterHyphenOrUnderscore } from '../types/constants';
+import { characterAfterHyphenOrUnderscore } from '../schema/constants';
 
 export function convertToCamelCase(str: string) {
   return str.replace(characterAfterHyphenOrUnderscore, (_, char) =>
@@ -16,5 +16,5 @@ export function fileNameGenerator(
   fileName: string,
   fileType: string,
 ) {
-  return `${outputDirectoryPath}/${fileName}.${fileType}`;
+  return `${ outputDirectoryPath }/${ fileName }.${ fileType }`;
 }

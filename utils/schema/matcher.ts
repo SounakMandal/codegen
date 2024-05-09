@@ -8,7 +8,6 @@ export function isPrimitiveType(fieldType: string) {
     case 'double':
     case 'string':
       return true;
-
     default:
       return false;
   }
