@@ -19,11 +19,7 @@ import {
 } from './../types/matcher';
 
 function extractCustomTypesFromSchema(entities: TypeDefinition[]) {
-  let customTypes: string[] = [];
-  for (let index = 0; index < entities.length; index++) {
-    customTypes = [...customTypes, entities[index]['type']];
-  }
-  return customTypes;
+  return entities.map(entity => entity["type"]);
 }
 
 function validateType(
@@ -64,17 +60,17 @@ export function validateSchema(output: SupportedLanguages, schema: Schema) {
   }
 
   const customTypes = extractCustomTypesFromSchema(entities);
-  for (let index = 0; index < entities.length; index++) {
-    const fields = entities[index]['fields'];
-    if (isEnumType(fields)) continue;
-    for (const fieldName in fields) {
-      const typeValue = fields[fieldName];
+  entities.forEach(entity => {
+    const fields = entity['fields'];
+    if (isEnumType(fields)) return;
+    Object.values(fields).forEach(typeValue => {
       const typeValid = validateType(customTypes, typeValue);
       if (!typeValid) {
         error = true;
         logMessage += `Invalid datatype ${ typeValue } obtained\n`;
       }
-    }
-  }
+    });
+  });
+
   return { error, logMessage };
 }

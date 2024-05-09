@@ -44,21 +44,20 @@ export function javaTemplateBuilder(
   options: TemplateOptions,
 ) {
   const { packageName, includePackage, typeGraph, enumType } = options;
-  let dependentImports: string = '';
+  let imports: string = 'import lombok.Data;';
   if (typeGraph) {
-    const dependencyList = typeGraph[entityName];
-    for (let index = 0; index < dependencyList.length; index++) {
-      const dependency = dependencyList[index];
-      if (dependency === 'list')
-        dependentImports = `${ dependentImports } import java.util.List;`;
-      if (dependency === 'map')
-        dependentImports = `${ dependentImports } import java.util.Map;`;
-    }
+    const dependencyList: string[] = typeGraph[entityName];
+    const importMap: { [key: string]: string; } = {
+      'list': 'import java.util.List;',
+      'map': 'import java.util.Map;',
+    };
+
+    dependencyList.forEach(dependency => {
+      if (importMap.hasOwnProperty(dependency)) {
+        imports = `${ imports }\n${ importMap[dependency] }`;
+      }
+    });
   }
-  const imports = `
-  import lombok.Data;
-  ${ dependentImports }
-  `;
 
   let fileContents: string = `@Data
   ${ includePackage ? 'public' : 'private' } ${ enumType ? 'enum' : 'class' } ${ convertToTitleCase(entityName) } {

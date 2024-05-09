@@ -13,19 +13,19 @@ import { convertToTitleCase } from '../utils/file/naming';
 
 function generateEntityFieldFromType(
   fieldName: string,
-  rawFieldType: string | FieldDefinition,
+  schemaFieldType: string | FieldDefinition,
   typeMapper: TypeMapper,
   fieldConverter: FieldConverter,
 ) {
   let fieldType: string;
   let anonymousEntity: TypeDefinition | null = null;
-  if (isObjectType(rawFieldType)) {
+  if (isObjectType(schemaFieldType)) {
     fieldType = convertToTitleCase(fieldName);
     anonymousEntity = {
       type: fieldType,
-      fields: rawFieldType,
+      fields: schemaFieldType,
     };
-  } else fieldType = typeMapper(rawFieldType);
+  } else fieldType = typeMapper(schemaFieldType);
   return {
     entityField: fieldConverter(fieldType, fieldName),
     anonymousEntity,
@@ -33,11 +33,11 @@ function generateEntityFieldFromType(
 }
 
 function generateEntityFieldFromEnumType(
-  rawFieldType: string,
+  schemaFieldType: string,
   typeMapper: TypeMapper,
   fieldConverter: FieldConverter,
 ) {
-  const fieldType = typeMapper(rawFieldType);
+  const fieldType = typeMapper(schemaFieldType);
   return fieldConverter(fieldType, null);
 }
 
@@ -46,32 +46,32 @@ export function generateEntityFromType(
   typeMapper: TypeMapper,
   fieldConverter: FieldConverter,
 ) {
+  let enumType = false;
   let fieldInformation = '';
-  let enumType: boolean = false;
   let anonymousEntities: TypeDefinition[] = [];
   const entityFields = getEntityFields(entity);
   if (isEnumType(entityFields)) {
     enumType = true;
-    for (let index = 0; index < entityFields.length; index++) {
-      const entityField = generateEntityFieldFromEnumType(
-        entityFields[index],
+    entityFields.forEach(entityField => {
+      fieldInformation += generateEntityFieldFromEnumType(
+        entityField,
         typeMapper,
         fieldConverter,
       );
-      fieldInformation += entityField;
-    }
+    });
   } else {
-    for (const fieldName in entityFields) {
+    Object.entries(entityFields).forEach(([fieldName, fieldValue]) => {
       const { entityField, anonymousEntity } = generateEntityFieldFromType(
         fieldName,
-        entityFields[fieldName],
+        fieldValue,
         typeMapper,
         fieldConverter,
       );
       fieldInformation += entityField;
-      if (anonymousEntity != null)
-        anonymousEntities = [...anonymousEntities, anonymousEntity];
-    }
+      if (anonymousEntity != null) {
+        anonymousEntities.push(anonymousEntity);
+      }
+    });
   }
   return { fieldInformation, anonymousEntities, enumType };
 }
@@ -83,8 +83,7 @@ export function processAnonymousEntities(
   fieldConverter: FieldConverter,
   templateBuilder: TemplateBuilder,
 ) {
-  for (let index = 0; index < anonymousEntities.length; index++) {
-    const anonymousEntity = anonymousEntities[index];
+  anonymousEntities.forEach((anonymousEntity, index) => {
     const entityName = getEntityName(anonymousEntity);
     const {
       fieldInformation,
@@ -95,8 +94,7 @@ export function processAnonymousEntities(
       includePackage: false,
       enumType,
     });
-    const syncCondition =
-      nestedAnonymousEntities.length > 0 && index !== anonymousEntities.length;
+    const syncCondition = nestedAnonymousEntities.length > 0 && index !== anonymousEntities.length;
     appendFileWithLog(file, `\n${ entityDefinition }`, syncCondition);
     processAnonymousEntities(
       file,
@@ -105,7 +103,7 @@ export function processAnonymousEntities(
       fieldConverter,
       templateBuilder,
     );
-  }
+  });
 }
 
 export function writeEntityToFile(

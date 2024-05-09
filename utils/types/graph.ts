@@ -53,14 +53,11 @@ function getTypeGraphOfEntity(entityFields: FieldDefinition) {
 
 export function getTypeGraphFromSchema(schema: Schema) {
   const entities = getEntitiesFromSchema(schema);
-  let typeDependency = {};
-  for (let index = 0; index < entities.length; index++) {
-    const entity = entities[index];
+  return entities.reduce((typeDependency, entity) => {
     const { entityName, entityFields } = getEntityDetails(entity);
-    typeDependency = {
+    return {
       ...typeDependency,
       [entityName]: getTypeGraphOfEntity(entityFields),
     };
-  }
-  return typeDependency;
+  }, {});
 }

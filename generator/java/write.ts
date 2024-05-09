@@ -18,11 +18,10 @@ export default function generateType(
 ) {
   const { package: javaPackage } = options;
   const directories = javaPackage.split('.');
-  const slashDelimitedDirectoryPath = `${outputDirectoryPath}/${directories.join('/')}`;
+  const slashDelimitedDirectoryPath = `${ outputDirectoryPath }/${ directories.join('/') }`;
   createDirectory(slashDelimitedDirectoryPath);
 
-  for (let index = 0; index < entities.length; index++) {
-    const entity = entities[index];
+  entities.forEach(entity => {
     const fileName = convertToTitleCase(getEntityName(entity));
     const file = fileNameGenerator(
       slashDelimitedDirectoryPath,
@@ -38,5 +37,5 @@ export default function generateType(
       javaFormatter,
       { packageName: javaPackage, ...options },
     );
-  }
+  });
 }

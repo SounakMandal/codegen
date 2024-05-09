@@ -46,12 +46,13 @@ export function typescriptTemplateBuilder(
   const { includePackage, typeGraph, enumType } = options;
   let dependentImports: string = '';
   if (typeGraph) {
-    const dependencyList = typeGraph[entityName];
-    for (let index = 0; index < dependencyList.length; index++) {
-      const dependency = dependencyList[index];
-      if (dependency !== 'list' && dependency !== 'map')
-        dependentImports = `${ dependentImports } import {${ convertToTitleCase(dependency) }} from './${ dependency }';`;
-    }
+    const dependencyList: string[] = typeGraph[entityName];
+    dependentImports = dependencyList
+      .filter(dependency => dependency !== 'list' && dependency !== 'map')
+      .map(dependency => {
+        const titleCaseDependency = convertToTitleCase(dependency);
+        return `import {${ titleCaseDependency }} from './${ dependency }';`;
+      }).join('\n');
   }
 
   const fileContents = enumType

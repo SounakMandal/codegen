@@ -17,9 +17,7 @@ export default function generateType(
   options: TemplateOptions,
 ) {
   createDirectory(outputDirectoryPath);
-
-  for (let index = 0; index < entities.length; index++) {
-    const entity = entities[index];
+  entities.forEach(entity => {
     const fileName = getEntityName(entity).toLowerCase();
     const file = fileNameGenerator(outputDirectoryPath, fileName, 'ts');
     writeEntityToFile(
@@ -31,5 +29,5 @@ export default function generateType(
       typescriptFormatter,
       options,
     );
-  }
+  });
 }
