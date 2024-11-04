@@ -1,7 +1,7 @@
 import { TemplateOptions } from '../../interface/mapper';
 import { TypeDefinition } from '../../interface/schema';
 import { createDirectory } from '../../utils/file/file';
-import { getEntityName } from '../../utils/types/extractor';
+import { getEntityName } from '../../utils/schema/extractor';
 import { convertToTitleCase, fileNameGenerator } from '../../utils/file/naming';
 import {
   convertToJavaEntityField,
@@ -11,25 +11,27 @@ import {
 } from './mapper';
 import { writeEntityToFile } from '../generate';
 
-export default function generateType(
+export default function generateTypeDefinition(
   outputDirectoryPath: string,
   entities: TypeDefinition[],
   options: TemplateOptions,
 ) {
   const { package: javaPackage } = options;
   const directories = javaPackage.split('.');
-  const slashDelimitedDirectoryPath = `${outputDirectoryPath}/${directories.join('/')}`;
-  createDirectory(slashDelimitedDirectoryPath);
+  const slashDelimitedDirectoryPath = `${ outputDirectoryPath }/${ directories.join('/') }`;
 
-  for (let index = 0; index < entities.length; index++) {
-    const entity = entities[index];
+  const logs = [];
+  const log = createDirectory(slashDelimitedDirectoryPath);
+  logs.push(log);
+
+  entities.forEach(entity => {
     const fileName = convertToTitleCase(getEntityName(entity));
     const file = fileNameGenerator(
       slashDelimitedDirectoryPath,
       fileName,
       'java',
     );
-    writeEntityToFile(
+    const log = writeEntityToFile(
       file,
       entity,
       javaDatatypeMapper,
@@ -38,5 +40,7 @@ export default function generateType(
       javaFormatter,
       { packageName: javaPackage, ...options },
     );
-  }
+    logs.push(log);
+  });
+  return logs;
 }

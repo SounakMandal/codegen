@@ -1,7 +1,7 @@
 import { TemplateOptions } from '../../interface/mapper';
 import { TypeDefinition } from '../../interface/schema';
 import { createDirectory } from '../../utils/file/file';
-import { getEntityName } from '../../utils/types/extractor';
+import { getEntityName } from '../../utils/schema/extractor';
 import { fileNameGenerator } from '../../utils/file/naming';
 import {
   convertToGolangEntityField,
@@ -11,18 +11,19 @@ import {
 } from './mapper';
 import { writeEntityToFile } from '../generate';
 
-export default function generateType(
+export default function generateTypeDefinition(
   outputDirectoryPath: string,
   entities: TypeDefinition[],
   options: TemplateOptions,
 ) {
-  createDirectory(outputDirectoryPath);
+  const logs = [];
+  const log = createDirectory(outputDirectoryPath);
+  logs.push(log);
 
-  for (let index = 0; index < entities.length; index++) {
-    const entity = entities[index];
+  entities.forEach(entity => {
     const fileName = getEntityName(entity).toLowerCase();
     const file = fileNameGenerator(outputDirectoryPath, fileName, 'go');
-    writeEntityToFile(
+    const log = writeEntityToFile(
       file,
       entity,
       golangDatatypeMapper,
@@ -31,5 +32,7 @@ export default function generateType(
       golangFormatter,
       { packageName: options.package },
     );
-  }
+    logs.push(log);
+  });
+  return logs;
 }

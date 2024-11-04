@@ -7,8 +7,8 @@ import {
 } from 'fs';
 
 export function createDirectory(outputDirectoryPath: string) {
-  console.log(`Creating directory ${ outputDirectoryPath }`);
   mkdirSync(outputDirectoryPath, { recursive: true });
+  return `Creating directory ${ outputDirectoryPath }`;
 }
 
 export function writeFileWithLog(

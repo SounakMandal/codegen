@@ -7,9 +7,9 @@ import {
   getBaseTypeOfList,
   getKeyTypeOfMap,
   getValueTypeOfMap,
-} from '../../utils/types/extractor';
+} from '../../utils/schema/extractor';
 import { TemplateOptions } from '../../interface/mapper';
-import { isArrayType, isMapType } from '../../utils/types/matcher';
+import { isArrayType, isMapType } from '../../utils/schema/matcher';
 
 export function typescriptDatatypeMapper(schemaDatatype: string): string {
   switch (schemaDatatype) {
@@ -44,21 +44,22 @@ export function typescriptTemplateBuilder(
   options: TemplateOptions,
 ) {
   const { includePackage, typeGraph, enumType } = options;
-  let dependentImports: string = '';
+  let imports: string = '';
   if (typeGraph) {
-    const dependencyList = typeGraph[entityName];
-    for (let index = 0; index < dependencyList.length; index++) {
-      const dependency = dependencyList[index];
-      if (dependency !== 'list' && dependency !== 'map')
-        dependentImports = `${ dependentImports } import {${ convertToTitleCase(dependency) }} from './${ dependency }';`;
-    }
+    const dependencyList: string[] = typeGraph[entityName];
+    imports = dependencyList
+      .filter(dependency => dependency !== 'list' && dependency !== 'map')
+      .map(dependency => {
+        const titleCaseDependency = convertToTitleCase(dependency);
+        return `import {${ titleCaseDependency }} from './${ dependency }';`;
+      }).join('\n');
   }
 
   const fileContents = enumType
-    ? `${ dependentImports }
+    ? `${ imports }
 
     ${ includePackage ? 'export' : '' } type ${ convertToTitleCase(entityName) } = ${ fieldInformation }`
-    : `${ dependentImports }
+    : `${ imports }
 
     ${ includePackage ? 'export' : '' } interface ${ convertToTitleCase(entityName) } {${ fieldInformation }}`;
   return prettier.format(fileContents, { parser: 'typescript' });

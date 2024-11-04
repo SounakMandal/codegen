@@ -18,25 +18,22 @@ function getTypeGraphOfEntity(entityFields: FieldDefinition) {
   let dependencyList: string[] = [];
 
   const handleAnonymousType = (fieldType: FieldDefinition) => {
-    const nestedDependecyList = getTypeGraphOfEntity(fieldType);
-    dependencyList = [...dependencyList, ...nestedDependecyList];
+    const nestedDependencyList = getTypeGraphOfEntity(fieldType);
+    dependencyList.push(...nestedDependencyList);
   };
 
   const handleArrayType = (fieldType: string) => {
-    dependencyList = [...dependencyList, 'list'];
+    dependencyList.push('list');
     const baseType = getBaseTypeOfList(fieldType);
-    if (!isPrimitiveType(baseType))
-      dependencyList = [...dependencyList, baseType];
+    if (!isPrimitiveType(baseType)) dependencyList.push(baseType);
   };
 
   const handleMapType = (fieldType: string) => {
-    dependencyList = [...dependencyList, 'map'];
+    dependencyList.push('map');
     const keyType = getKeyTypeOfMap(fieldType);
-    if (!isPrimitiveType(keyType))
-      dependencyList = [...dependencyList, keyType];
+    if (!isPrimitiveType(keyType)) dependencyList.push(keyType);
     const valueType = getValueTypeOfMap(fieldType);
-    if (!isPrimitiveType(valueType))
-      dependencyList = [...dependencyList, valueType];
+    if (!isPrimitiveType(valueType)) dependencyList.push(valueType);
   };
 
   if (isEnumType(entityFields)) return dependencyList;
@@ -46,21 +43,18 @@ function getTypeGraphOfEntity(entityFields: FieldDefinition) {
       else if (isArrayType(fieldType)) handleArrayType(fieldType);
       else if (isMapType(fieldType)) handleMapType(fieldType);
       else if (isPrimitiveType(fieldType)) return;
-      else dependencyList = [...dependencyList, fieldType];
+      else dependencyList.push(fieldType);
     });
   return [...new Set(dependencyList)];
 }
 
 export function getTypeGraphFromSchema(schema: Schema) {
   const entities = getEntitiesFromSchema(schema);
-  let typeDependency = {};
-  for (let index = 0; index < entities.length; index++) {
-    const entity = entities[index];
+  return entities.reduce((typeDependency, entity) => {
     const { entityName, entityFields } = getEntityDetails(entity);
-    typeDependency = {
+    return {
       ...typeDependency,
       [entityName]: getTypeGraphOfEntity(entityFields),
     };
-  }
-  return typeDependency;
+  }, {});
 }
