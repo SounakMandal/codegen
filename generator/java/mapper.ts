@@ -1,3 +1,5 @@
+import { readFileSync } from 'fs';
+import { compile } from 'handlebars';
 import { exec } from 'child_process';
 import {
   convertToCamelCase,
@@ -44,33 +46,27 @@ export function javaTemplateBuilder(
   options: TemplateOptions,
 ) {
   const { packageName, includePackage, typeGraph, enumType } = options;
-  let imports: string = 'import lombok.Data;';
+  const imports: string[] = [];
+  if (includePackage)
+    imports.push('import lombok.Data;');
   if (typeGraph) {
     const dependencyList: string[] = typeGraph[entityName];
-    const importMap: { [key: string]: string; } = {
-      'list': 'import java.util.List;',
-      'map': 'import java.util.Map;',
-    };
-
-    dependencyList.forEach(dependency => {
-      if (importMap.hasOwnProperty(dependency)) {
-        imports = `${ imports }\n${ importMap[dependency] }`;
-      }
-    });
+    if (dependencyList.includes('list')) imports.push('import java.util.List;');
+    if (dependencyList.includes('map')) imports.push('import java.util.Map;');
   }
 
-  let fileContents: string = `@Data
-  ${ includePackage ? 'public' : 'private' } ${ enumType ? 'enum' : 'class' } ${ convertToTitleCase(entityName) } {
-    ${ fieldInformation }
-  }`;
+  const templateFile = `./template/java/${ enumType ? 'enum' : 'class' }.hbs`;;
+  const templateContent = readFileSync(templateFile, 'utf-8');
+  const template = compile(templateContent, { noEscape: true });
 
-  if (includePackage) {
-    fileContents = `package ${ packageName };
-    ${ imports }
-    ${ fileContents }
-    `;
-  }
-  return fileContents;
+  const templateData = {
+    imports,
+    packageName,
+    includePackage,
+    entityName: convertToTitleCase(entityName),
+    fieldInformation,
+  };
+  return template(templateData);
 }
 
 export function javaFormatter(file: string) {

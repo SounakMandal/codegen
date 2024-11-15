@@ -1,0 +1,10 @@
+{{#if includePackage}}package {{packageName}};{{/if}}
+
+{{#each imports}}
+{{this}}
+{{/each}}
+
+@Data
+{{#if includePackage}}public{{else}}private{{/if}} enum {{entityName}} {
+{{fieldInformation}}
+}

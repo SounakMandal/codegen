@@ -1,3 +1,5 @@
+import { readFileSync } from 'fs';
+import { compile } from 'handlebars';
 import prettier from '@prettier/sync';
 import {
   convertToCamelCase,
@@ -55,13 +57,17 @@ export function typescriptTemplateBuilder(
       }).join('\n');
   }
 
-  const fileContents = enumType
-    ? `${ imports }
+  const templateFile = `./template/typescript/${ enumType ? 'type' : 'interface' }.hbs`;;
+  const templateContent = readFileSync(templateFile, 'utf-8');
+  const template = compile(templateContent, { noEscape: true });
 
-    ${ includePackage ? 'export' : '' } type ${ convertToTitleCase(entityName) } = ${ fieldInformation }`
-    : `${ imports }
-
-    ${ includePackage ? 'export' : '' } interface ${ convertToTitleCase(entityName) } {${ fieldInformation }}`;
+  const templateData = {
+    imports,
+    includePackage,
+    entityName: convertToTitleCase(entityName),
+    fieldInformation,
+  };
+  const fileContents = template(templateData);
   return prettier.format(fileContents, { parser: 'typescript' });
 }
 
