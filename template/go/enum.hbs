@@ -1,0 +1,9 @@
+{{#if includePackage}}package {{packageName}}{{/if}}
+
+type {{formattedEntityName}} int64
+
+const (
+{{#each fieldInformation}}
+{{this}} {{../formattedEntityName}} = {{@index}}
+{{/each}}
+)

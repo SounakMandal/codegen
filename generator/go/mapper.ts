@@ -1,3 +1,5 @@
+import { readFileSync } from 'fs';
+import { compile } from 'handlebars';
 import { exec } from 'child_process';
 import { TemplateOptions } from '../../interface/mapper';
 import {
@@ -22,12 +24,11 @@ export function golangDatatypeMapper(schemaDatatype: string): string {
       if (isArrayType(schemaDatatype))
         return `[]${ golangDatatypeMapper(getBaseTypeOfList(schemaDatatype)) }`;
       if (isMapType(schemaDatatype)) {
-        const mapKeyType = golangDatatypeMapper(getKeyTypeOfMap(schemaDatatype));
-        const mapValueType = golangDatatypeMapper(getValueTypeOfMap(schemaDatatype));
-        if (mapKeyType in ['string', 'int64', 'float64', 'double64']) return `map[${ mapKeyType }]${ mapValueType }`;
-        else return `map[*${ mapKeyType }]${ mapValueType }`;
+        let mapKeyType = golangDatatypeMapper(getKeyTypeOfMap(schemaDatatype));
+        let mapValueType = golangDatatypeMapper(getValueTypeOfMap(schemaDatatype));
+        return `map[${ mapKeyType }]${ mapValueType }`;
       }
-      return convertToTitleCase(schemaDatatype);
+      return "*" + convertToTitleCase(schemaDatatype);
   }
 }
 
@@ -46,20 +47,22 @@ export function golangTemplateBuilder(
 ) {
   const { packageName, includePackage, enumType } = options;
   const formattedEntityName = convertToTitleCase(entityName);
-  let fileContents: string = enumType
-    ? `type ${ formattedEntityName } int64 \n const (${ fieldInformation
+
+  const templateFile = `./template/go/${ enumType ? 'enum' : 'struct' }.hbs`;;
+  const templateContent = readFileSync(templateFile, 'utf-8');
+  const template = compile(templateContent, { noEscape: true });
+
+  const templateData = {
+    packageName,
+    includePackage,
+    formattedEntityName,
+    fieldInformation: enumType ? fieldInformation
       .split('\n')
       .filter(value => value)
-      .map((value, index) => `${ value } ${ formattedEntityName } = ${ index }`)
-      .join('\n') })`
-    : `type ${ formattedEntityName } struct {${ fieldInformation }} `;
-
-  if (includePackage) {
-    fileContents = `package ${ packageName };
-    ${ fileContents }
-    `;
-  }
-  return fileContents;
+      .map(value => value.replace("*", ""))
+      : fieldInformation
+  };
+  return template(templateData);
 }
 
 export function golangFormatter(file: string) {

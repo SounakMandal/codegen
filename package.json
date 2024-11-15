@@ -17,6 +17,7 @@
     "scripts": {
         "format": "prettier --write --single-quote \"./**/*.{js,ts}\"",
         "help": "npx ts-node index.ts --help",
+        "test": "jest",
         "ts": "npx ts-node index.ts -cd --file=test/contract.json --output=typescript --typescript-out=output/typescript",
         "java": "npx ts-node index.ts --file=test/contract.json --output=java --java-out=output/java",
         "go": "npx ts-node index.ts --file=test/contract.json --output=go --go-out=output/golang"
@@ -24,11 +25,12 @@
     "dependencies": {
         "@prettier/sync": "^0.5.2",
         "chalk": "^4.1.2",
-        "commander": "^12.1.0"
+        "commander": "^12.1.0",
+        "handlebars": "^4.7.8"
     },
     "devDependencies": {
         "@types/jest": "^29.5.14",
-        "@types/node": "^22.8.7",
+        "@types/node": "^22.9.0",
         "jest": "^29.7.0",
         "prettier": "^3.3.3",
         "ts-jest": "^29.2.5",
