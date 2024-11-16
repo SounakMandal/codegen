@@ -3,17 +3,19 @@
 import { readFile } from 'fs';
 import { init } from './utils/cmd/init';
 import { Command } from 'commander';
-import log from './utils/cmd/log';
-import typescriptGenerator from './generator/typescript/write';
-import javaGenerator from './generator/java/write';
-import goGenerator from './generator/go/write';
+import { typescriptClientGenerator, typescriptEntityGenerator } from './generator/typescript/write';
+import { javaEntityGenerator } from './generator/java/write';
+import { goEntityGenerator } from './generator/go/write';
 import {
   getCompilerOptionsFromSchema,
+  getEndpointOptionsFromSchema,
   getEntitiesFromSchema,
 } from './utils/schema/extractor';
 import { getTypeGraphFromSchema } from './utils/schema/graph';
+import { logger } from './utils/logger';
 import { validateCommand } from './validator/cli';
 import { validateSchema } from './validator/file';
+import { GoOptions, JavaOptions, TypescriptOptions } from './interface/schema';
 
 init({
   title: 'codegen',
@@ -21,7 +23,7 @@ init({
   bgColor: '#36BB09',
   color: '#000000',
   bold: true,
-  clear: true,
+  clear: false,
 });
 
 const program = new Command();
@@ -29,73 +31,71 @@ const program = new Command();
 program
   .name('codegen')
   .description('CLI for code generation')
-  .option('-c, --clear', 'Clear the console', true)
-  .option('--no-clear', "Don't clear the console", false)
-  .option('-d, --debug', 'Print debug info', true)
+  .option('-t, --types', 'Generates typed models', true)
+  .option('-c, --client', 'Generates client code', false)
+  .option('-v, --verbose', 'Print verbose info', true)
+  .option('-q, --quiet', 'Disable logging', false)
   .option('-f, --file <string>', 'Input file for code generation (required)')
   .option('-o, --output <string>', 'The output language (required)')
-  .option('-t, --typescript-out <string>', 'The TypeScript module where the code should be generated')
-  .option('-j, --java-out <string>', 'The Java package where the code should be generated')
-  .option('-g, --go-out <string>', 'The Golang package where the code should be generated');
+  .option('--typescript-out <string>', 'The TypeScript module where the code should be generated')
+  .option('--java-out <string>', 'The Java package where the code should be generated')
+  .option('--go-out <string>', 'The Golang package where the code should be generated');
 
 program.parse(process.argv);
 
 const options = program.opts();
-const { error, logMessage } = validateCommand(options);
-if (error) {
-  log('error', 'ERROR LOG', logMessage);
-  process.exit(1);
-}
+const { file, types, output, client, typescriptOut, javaOut, goOut } = options;
 
-const { file, debug, output, typescriptOut, javaOut, goOut } = options;
+validateCommand(options);
+
 readFile(file as string, 'utf8', (err: any, data: string) => {
   if (err) {
-    log('error', 'ERROR LOG', '--file argument has invalid file location');
+    logger.error('--file argument has invalid file location');
     process.exit(1);
   }
 
   const schema = JSON.parse(data);
-  const { error, logMessage } = validateSchema(output, schema);
-  if (error) {
-    log('error', 'ERROR LOG', logMessage);
-    process.exit(1);
-  }
+  validateSchema(output, client, schema);
+
+  let outputDirectoryPath;
   const entities = getEntitiesFromSchema(schema);
   const typeGraph = getTypeGraphFromSchema(schema);
+  const endpoints = getEndpointOptionsFromSchema(schema);
   const compilerOptions = getCompilerOptionsFromSchema(schema);
-  let logs: string[];
   switch (output) {
     case 'typescript':
       if (!typescriptOut) {
-        log('error', 'ERROR LOG', '--typescript-out is required when output is typescript');
+        logger.error('--typescript-out is required when output is typescript');
         process.exit(1);
       }
-      logs = typescriptGenerator(typescriptOut as string, entities, { typeGraph });
+      outputDirectoryPath = typescriptOut as string;
+      const typescriptOptions = compilerOptions.typescript as TypescriptOptions;
+      if (types) typescriptEntityGenerator(outputDirectoryPath, entities, { ...typescriptOptions, typeGraph });
+      if (client) typescriptClientGenerator(outputDirectoryPath, entities, endpoints, { ...typescriptOptions, typeGraph });
       break;
 
     case 'java':
       if (!javaOut) {
-        log('error', 'ERROR LOG', '--java-out is required when output is java');
+        logger.error('--java-out is required when output is java');
         process.exit(1);
       }
-      logs = javaGenerator(javaOut as string, entities, { ...compilerOptions.java, typeGraph });
+      outputDirectoryPath = javaOut as string;
+      const javaOptions = compilerOptions.java as JavaOptions;
+      if (types) javaEntityGenerator(outputDirectoryPath, entities, { ...javaOptions, typeGraph });
       break;
 
     case 'go':
       if (!goOut) {
-        log('error', 'ERROR LOG', '--go-out is required when output is go');
+        logger.error('--go-out is required when output is go');
         process.exit(1);
       }
-      logs = goGenerator(goOut as string, entities, compilerOptions.go);
+      outputDirectoryPath = goOut as string;
+      const goOptions = compilerOptions.go as GoOptions;
+      if (types) goEntityGenerator(outputDirectoryPath, entities, { ...goOptions });
       break;
 
     default:
-      log('error', 'ERROR LOG', 'Unsupported output language specified');
+      logger.error('Unsupported output language specified');
       process.exit(1);
-  }
-
-  if (debug) {
-    log('success', 'SUCCESS LOG', '');
-    logs.forEach((logMessage) => console.log(logMessage));
   }
 });

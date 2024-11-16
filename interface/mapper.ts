@@ -1,6 +1,4 @@
-export interface TemplateOptions {
-  [key: string]: any;
-}
+export type TemplateOptions = Record<string, any>;
 
 export type TypeMapper = (schemaDataType: string) => string;
 

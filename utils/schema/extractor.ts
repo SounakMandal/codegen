@@ -4,6 +4,10 @@ export function getCompilerOptionsFromSchema(schema: Schema) {
   return schema['compilerOptions'];
 }
 
+export function getEndpointOptionsFromSchema(schema: Schema) {
+  return schema['endpoints'];
+}
+
 export function getEntitiesFromSchema(schema: Schema) {
   return schema['types'];
 }
@@ -21,11 +25,6 @@ export function getEntityDetails(entity: TypeDefinition) {
     entityName: getEntityName(entity),
     entityFields: getEntityFields(entity),
   };
-}
-
-export function getEnumValues(enumType: string) {
-  const enumValues = enumType.split('|');
-  return enumValues.map((value) => value.trim());
 }
 
 export function getBaseTypeOfList(listType: string) {

@@ -1,6 +1,6 @@
 import { TemplateOptions } from '../../interface/mapper';
-import { TypeDefinition } from '../../interface/schema';
-import { createDirectory } from '../../utils/file/file';
+import { Endpoints, TypeDefinition } from '../../interface/schema';
+import { createDirectory, writeFileWithLog } from '../../utils/file/file';
 import { getEntityName } from '../../utils/schema/extractor';
 import { fileNameGenerator } from '../../utils/file/naming';
 import {
@@ -9,20 +9,22 @@ import {
   typescriptDatatypeMapper,
   typescriptFormatter,
 } from './mapper';
-import { writeEntityToFile } from '../generate';
+import { writeEntityToFile } from '../entity';
+import { generateEndpoints } from '../endpoints';
 
-export default function generateTypeDefinition(
+export function typescriptEntityGenerator(
   outputDirectoryPath: string,
   entities: TypeDefinition[],
   options: TemplateOptions,
 ) {
-  const logs = [];
-  const log = createDirectory(outputDirectoryPath);
-  logs.push(log);
+  let indexFileContents = '';
+  const fullDirectoryPath = `${ outputDirectoryPath }/${ options.type_module }`;
+  createDirectory(fullDirectoryPath);
+
   entities.forEach(entity => {
     const fileName = getEntityName(entity).toLowerCase();
-    const file = fileNameGenerator(outputDirectoryPath, fileName, 'ts');
-    const log = writeEntityToFile(
+    const file = fileNameGenerator(fullDirectoryPath, fileName, 'ts');
+    writeEntityToFile(
       file,
       entity,
       typescriptDatatypeMapper,
@@ -31,7 +33,24 @@ export default function generateTypeDefinition(
       typescriptFormatter,
       options,
     );
-    logs.push(log);
+    indexFileContents += `export * from './${ fileName }';\n`;
   });
-  return logs;
+
+  const indexFile = fileNameGenerator(fullDirectoryPath, 'index', 'ts');
+  writeFileWithLog(indexFile, indexFileContents, true);
 }
+
+export function typescriptClientGenerator(
+  outputDirectoryPath: string,
+  entities: TypeDefinition[],
+  endpoints: Endpoints,
+  options: TemplateOptions
+) {
+  const fullDirectoryPath = `${ outputDirectoryPath }/${ options.endpoints_module }`;
+  createDirectory(fullDirectoryPath);
+  if (Array.isArray(endpoints)) {
+    endpoints.forEach(endpoint => generateEndpoints(fullDirectoryPath, entities, endpoint));
+  } else {
+
+  }
+};

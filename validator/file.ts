@@ -3,9 +3,11 @@ import {
   SupportedLanguages,
   TypeDefinition,
 } from '../interface/schema';
+import { logger } from '../utils/logger';
 import {
   getBaseTypeOfList,
   getCompilerOptionsFromSchema,
+  getEndpointOptionsFromSchema,
   getEntitiesFromSchema,
   getKeyTypeOfMap,
   getValueTypeOfMap,
@@ -39,22 +41,22 @@ function validateType(
   return false;
 }
 
-export function validateSchema(output: SupportedLanguages, schema: Schema) {
-  let error = false;
-  let logMessage = '';
+export function validateSchema(output: SupportedLanguages, client: boolean, schema: Schema) {
   const entities = getEntitiesFromSchema(schema);
   const compilerOptions = getCompilerOptionsFromSchema(schema);
 
   switch (output) {
     case 'java':
     case 'go':
-      if (
-        compilerOptions === undefined ||
-        compilerOptions[output] === undefined ||
-        compilerOptions[output]['package'] === undefined
-      ) {
-        error = true;
-        logMessage += `compilerOptions.${ output }.package is mandatory when --output is ${ output }`;
+      if (!compilerOptions || !compilerOptions[output] || !compilerOptions[output]['package']) {
+        logger.error(`compilerOptions.${ output }.package is mandatory when --output is ${ output }`);
+        process.exit(1);
+      }
+      break;
+    case 'typescript':
+      if (!compilerOptions || !compilerOptions[output] || !compilerOptions[output]['type_module']) {
+        logger.error(`compilerOptions.${ output }.type_module is mandatory when --output is ${ output }`);
+        process.exit(1);
       }
       break;
   }
@@ -66,11 +68,26 @@ export function validateSchema(output: SupportedLanguages, schema: Schema) {
     Object.values(fields).forEach(typeValue => {
       const typeValid = validateType(customTypes, typeValue);
       if (!typeValid) {
-        error = true;
-        logMessage += `Invalid datatype ${ typeValue } obtained\n`;
+        logger.error(`Invalid datatype ${ typeValue } obtained`);
+        process.exit(1);
       }
     });
   });
 
-  return { error, logMessage };
+  if (!client) return;
+
+  const endpointOptions = getEndpointOptionsFromSchema(schema);
+  if (!endpointOptions) {
+    logger.error(`endpoints is mandatory when --client is true`);
+    process.exit(1);
+  }
+
+  switch (output) {
+    case 'typescript':
+      if (!compilerOptions || !compilerOptions[output] || !compilerOptions[output]['endpoints_module']) {
+        logger.error(`compilerOptions.${ output }.endpoints_module is mandatory when --output is ${ output } and --client is true`);
+        process.exit(1);
+      }
+      break;
+  }
 }
