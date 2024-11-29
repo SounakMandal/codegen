@@ -1,19 +1,19 @@
 import path from 'path';
 import { readFileSync } from 'fs';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 const cliPath = path.resolve(__dirname, '../index.ts');
 
 export const runCLI = (args: string[]) => {
   try {
-    return execSync(`npx ts-node ${ cliPath } ${ args.join(' ') }`, { encoding: 'utf-8' });
+    return execFileSync('npx', ['ts-node', cliPath, ...args], { encoding: 'utf-8' });
   } catch (error: any) {
     return error.stdout;
   }
 };
 
 export const runHelp = () => {
-  return execSync(`npx ts-node ${ cliPath } --help`);
+  return execFileSync('npx', ['ts-node', cliPath, '--help']);
 };
 
 export const folderPath = './output';
