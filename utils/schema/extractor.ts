@@ -36,8 +36,8 @@ export function getBaseTypeOfList(listType: string) {
 
 function getKeyValuePair(mapType: string) {
   const splitCharacter = ':';
-  mapType = mapType.replace('[', splitCharacter);
-  mapType = mapType.replace(']', splitCharacter);
+  mapType = mapType.replace(/\[/g, splitCharacter);
+  mapType = mapType.replace(/\]/g, splitCharacter);
   return mapType.split(splitCharacter)[1];
 }
 
