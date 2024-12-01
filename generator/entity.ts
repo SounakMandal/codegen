@@ -10,6 +10,7 @@ import { appendFileWithLog, writeFileWithLog } from '../utils/file/file';
 import { getEntityFields, getEntityName } from '../utils/schema/extractor';
 import { isObjectType, isEnumType } from '../utils/schema/matcher';
 import { convertToTitleCase } from '../utils/file/naming';
+import { logger } from '../utils/logger';
 
 function generateEntityFieldFromType(
   fieldName: string,
@@ -41,7 +42,7 @@ function generateEntityFieldFromEnumType(
   return fieldConverter(fieldType, null);
 }
 
-export function generateEntityFromType(
+function generateEntityFromType(
   entity: TypeDefinition,
   typeMapper: TypeMapper,
   fieldConverter: FieldConverter,
@@ -76,7 +77,7 @@ export function generateEntityFromType(
   return { fieldInformation, anonymousEntities, enumType };
 }
 
-export function processAnonymousEntities(
+function processAnonymousEntities(
   file: string,
   anonymousEntities: TypeDefinition[],
   typeMapper: TypeMapper,
@@ -134,5 +135,5 @@ export function writeEntityToFile(
     templateBuilder,
   );
   format(file);
-  return `File ${ file } written successfully with entity ${ entityName }`;
+  logger.info(`File ${ file } written successfully with entity ${ entityName }`);
 }

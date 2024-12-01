@@ -1,0 +1,17 @@
+{{#if imports}}
+{{imports}}
+{{/if}}
+
+export async function create{{entityName}}(data: {{entityName}}): Promise<{{entityName}}> {
+  const response = await fetch(`/api/{{endpointName}}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    throw new Error('Error creating {{entityName}}');
+  }
+  return response.json();
+}

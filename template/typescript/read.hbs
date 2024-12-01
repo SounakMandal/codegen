@@ -1,0 +1,19 @@
+{{#if imports}}
+{{imports}}
+{{/if}}
+
+export async function get{{entityName}}(id: string): Promise<{{entityName}}> {
+  const response = await fetch(`/api/{{endpointName}}/${id}`);
+  if (!response.ok) {
+    throw new Error('{{entityName}} not found');
+  }
+  return response.json();
+}
+
+export async function list{{entityName}}s(): Promise<{{entityName}}[]> {
+  const response = await fetch(`/api/{{endpointName}}`);
+  if (!response.ok) {
+    throw new Error('Error retrieving {{entityName}}s');
+  }
+  return response.json();
+}

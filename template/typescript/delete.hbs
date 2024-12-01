@@ -1,0 +1,12 @@
+{{#if imports}}
+{{imports}}
+{{/if}}
+
+export async function delete{{entityName}}(id: string): Promise<void> {
+  const response = await fetch(`/api/{{endpointName}}/${id}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    throw new Error('Error deleting {{entityName}}');
+  }
+}

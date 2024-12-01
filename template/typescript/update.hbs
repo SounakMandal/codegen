@@ -1,0 +1,17 @@
+{{#if imports}}
+{{imports}}
+{{/if}}
+
+export async function update{{entityName}}(id: string, data: Partial<{{entityName}}>): Promise<{{entityName}}> {
+    const response = await fetch(`/api/{{endpointName}}/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+        throw new Error('Error updating {{entityName}}');
+    }
+    return response.json();
+}

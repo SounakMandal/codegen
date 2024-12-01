@@ -2,26 +2,28 @@ import {
   appendFile,
   appendFileSync,
   mkdirSync,
+  unlinkSync,
   writeFile,
   writeFileSync,
 } from 'fs';
+import { logger } from '../logger';
 
 export function createDirectory(outputDirectoryPath: string) {
   mkdirSync(outputDirectoryPath, { recursive: true });
-  return `Creating directory ${ outputDirectoryPath }`;
+  logger.info(`Creating directory ${ outputDirectoryPath }`);
 }
 
 export function writeFileWithLog(
   file: string,
-  entityDefinition: string,
+  contents: string,
   sync: boolean,
 ) {
   if (sync) {
-    writeFileSync(file, entityDefinition, 'utf8');
+    writeFileSync(file, contents, 'utf8');
   } else {
-    writeFile(file, entityDefinition, 'utf8', (err: any) => {
+    writeFile(file, contents, 'utf8', (err: any) => {
       if (err) {
-        console.log(err);
+        logger.error(err);
         throw new Error('Error writing file:' + file);
       }
     });
@@ -30,17 +32,25 @@ export function writeFileWithLog(
 
 export function appendFileWithLog(
   file: string,
-  entityDefinition: string,
+  contents: string,
   sync: boolean,
 ) {
   if (sync) {
-    appendFileSync(file, entityDefinition, 'utf8');
+    appendFileSync(file, contents, 'utf8');
   } else {
-    appendFile(file, entityDefinition, 'utf8', (err: any) => {
+    appendFile(file, contents, 'utf8', (err: any) => {
       if (err) {
-        console.log(err);
+        logger.error(err);
         throw new Error('Error writing file:' + file);
       }
     });
+  }
+}
+
+export function deleteFile(file: string) {
+  try {
+    unlinkSync(file);
+  } catch (err) {
+    logger.error(`Error deleting file at ${ file }:`, err);
   }
 }

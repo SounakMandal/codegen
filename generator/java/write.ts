@@ -9,29 +9,26 @@ import {
   javaDatatypeMapper,
   javaFormatter,
 } from './mapper';
-import { writeEntityToFile } from '../generate';
+import { writeEntityToFile } from '../entity';
 
-export default function generateTypeDefinition(
+export function javaEntityGenerator(
   outputDirectoryPath: string,
   entities: TypeDefinition[],
   options: TemplateOptions,
 ) {
   const { package: javaPackage } = options;
   const directories = javaPackage.split('.');
-  const slashDelimitedDirectoryPath = `${ outputDirectoryPath }/${ directories.join('/') }`;
+  const fullDirectoryPath = `${ outputDirectoryPath }/${ directories.join('/') }`;
 
-  const logs = [];
-  const log = createDirectory(slashDelimitedDirectoryPath);
-  logs.push(log);
-
+  createDirectory(fullDirectoryPath);
   entities.forEach(entity => {
     const fileName = convertToTitleCase(getEntityName(entity));
     const file = fileNameGenerator(
-      slashDelimitedDirectoryPath,
+      fullDirectoryPath,
       fileName,
       'java',
     );
-    const log = writeEntityToFile(
+    writeEntityToFile(
       file,
       entity,
       javaDatatypeMapper,
@@ -40,7 +37,5 @@ export default function generateTypeDefinition(
       javaFormatter,
       { packageName: javaPackage, ...options },
     );
-    logs.push(log);
   });
-  return logs;
 }

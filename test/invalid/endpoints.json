@@ -1,0 +1,70 @@
+{
+    "compilerOptions": {
+        "java": {
+            "package": "com.controller.models"
+        },
+        "go": {
+            "package": "models"
+        },
+        "typescript": {
+            "type_module": "models",
+            "endpoints_module": "endpoints"
+        }
+    },
+    "types": [
+        {
+            "type": "user_details",
+            "fields": {
+                "name": "string",
+                "timestamp": "int",
+                "accounts": "list[account_details]",
+                "address": {
+                    "pin_code": "int",
+                    "street": "string",
+                    "city": "string",
+                    "state": "string",
+                    "country": "string",
+                    "contact_information": {
+                        "phone_number": "string",
+                        "email": "string"
+                    }
+                },
+                "role": "user_role"
+            }
+        },
+        {
+            "type": "user_role",
+            "fields": ["admin", "employee", "customer"]
+        },
+        {
+            "type": "account_details",
+            "fields": {
+                "account_number": "int",
+                "phone_number": "list[string]",
+                "nominee": "list[string]",
+                "type": ["savings", "credit"],
+                "daily_expense": "map[string, float]",
+                "daily_transactions": "map[string, transaction]",
+                "transactions_by_users": "map[user_details, transaction]"
+            }
+        },
+        {
+            "type": "transaction",
+            "fields": {
+                "id": "string",
+                "timestamp": "int",
+                "amount": "float",
+                "recepient": {
+                    "name": "string",
+                    "account_number": "int"
+                },
+                "item": {
+                    "id": "string",
+                    "cost": "int",
+                    "units": "int",
+                    "categories": "list[string]"
+                }
+            }
+        }
+    ]
+}

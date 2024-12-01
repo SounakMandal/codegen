@@ -9,21 +9,19 @@ import {
   golangDatatypeMapper,
   golangFormatter,
 } from './mapper';
-import { writeEntityToFile } from '../generate';
+import { writeEntityToFile } from '../entity';
 
-export default function generateTypeDefinition(
+export function goEntityGenerator(
   outputDirectoryPath: string,
   entities: TypeDefinition[],
   options: TemplateOptions,
 ) {
-  const logs = [];
-  const log = createDirectory(outputDirectoryPath);
-  logs.push(log);
-
+  const fullDirectoryPath = `${ outputDirectoryPath }/${ options.package }`;
+  createDirectory(fullDirectoryPath);
   entities.forEach(entity => {
     const fileName = getEntityName(entity).toLowerCase();
-    const file = fileNameGenerator(outputDirectoryPath, fileName, 'go');
-    const log = writeEntityToFile(
+    const file = fileNameGenerator(fullDirectoryPath, fileName, 'go');
+    writeEntityToFile(
       file,
       entity,
       golangDatatypeMapper,
@@ -32,7 +30,5 @@ export default function generateTypeDefinition(
       golangFormatter,
       { packageName: options.package },
     );
-    logs.push(log);
   });
-  return logs;
 }

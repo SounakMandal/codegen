@@ -5,8 +5,13 @@
     },
     "go": {
       "package": "models"
+    },
+    "typescript": {
+      "type_module": "models",
+      "endpoints_module": "endpoints"
     }
   },
+  "endpoints": ["crud", "search"],
   "types": [
     {
       "type": "user_details",

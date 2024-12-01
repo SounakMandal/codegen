@@ -22,37 +22,27 @@ type AlertType = 'success' | 'warning' | 'info' | 'error';
 
 type AlertOptions = {
   type: AlertType,
-  heading: string,
   message: string,
 };
 
 const alert = (options: AlertOptions) => {
-  const defaultOptions = {
-    type: `error`,
-    message: `You forgot to define all options.`,
-    heading: ``
-  };
-  const opts = { ...defaultOptions, ...options };
-  const { type, message, heading } = opts;
-  const printName = heading ? heading : type.toUpperCase();
-
+  const { type, message } = options;
   switch (type) {
     case 'success':
-      console.log(`\n${ greenI(` ${ printName } `) } ${ green(message) }\n`);
+      console.log(`\n${ green(message) }\n`);
       break;
     case 'warning':
-      console.log(`\n${ orangeI(` ${ printName } `) } ${ orange(message) }\n`);
+      console.log(`\n${ orange(message) }\n`);
       break;
     case 'info':
-      console.log(`\n${ blueI(` ${ printName } `) } ${ blue(message) }\n`);
+      console.log(`\n${ blue(message) }\n`);
       break;
     case 'error':
-      console.log(`\n${ redI(` ${ printName } `) } ${ red(message) }\n`);
+      console.log(`\n${ red(message) }\n`);
       break;
   }
 };
 
-export default (type: AlertType, heading: string, info: any) => {
-  alert({ type, heading, message: `` });
-  console.log(info);
+export default (type: AlertType, info: any) => {
+  alert({ type, message: info });
 };
