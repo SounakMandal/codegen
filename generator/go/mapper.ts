@@ -59,7 +59,7 @@ export function golangTemplateBuilder(
     fieldInformation: enumType ? fieldInformation
       .split('\n')
       .filter(value => value)
-      .map(value => value.replace("*", ""))
+      .map(value => value.replace(/\*/g, ""))
       : fieldInformation
   };
   return template(templateData);

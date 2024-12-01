@@ -29,8 +29,8 @@ export function getEntityDetails(entity: TypeDefinition) {
 
 export function getBaseTypeOfList(listType: string) {
   const splitCharacter = ':';
-  listType = listType.replace('[', splitCharacter);
-  listType = listType.replace(']', splitCharacter);
+  listType = listType.replace(/\[/g, splitCharacter);
+  listType = listType.replace(/\]/g, splitCharacter);
   return listType.split(splitCharacter)[1].trim();
 }
 
